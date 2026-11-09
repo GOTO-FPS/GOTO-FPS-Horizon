@@ -1,1 +1,54 @@
+name: Build and validate GOTO-FPS 0.7.8
 
+on:
+  push:
+    branches:
+      - copilot/horizon-fps-hud
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build sandboxed Horizon mod
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust stable and WebAssembly target
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+          components: rustfmt
+
+      - name: Install official cargo-horizon-mod
+        run: cargo install --git https://github.com/starling-client/starling --rev 68a2c4dd1b9a9e511ad3758a79ab772b6f9e5b29 --locked cargo-horizon-mod
+
+      - name: Check formatting
+        working-directory: mod
+        run: cargo fmt --all -- --check
+
+      - name: Build Horizon mod
+        working-directory: mod
+        run: cargo horizon-mod build
+
+      - name: Run sandbox tests
+        working-directory: mod
+        run: cargo horizon-mod test
+
+      - name: Validate package
+        working-directory: mod
+        run: cargo horizon-mod check target/horizon-mod/goto_fps.hmod
+
+      - name: Upload mod artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: GOTO-FPS-0.7.8
+          path: mod/target/horizon-mod/goto_fps.hmod
+          if-no-files-found: error
+          retention-days: 30
