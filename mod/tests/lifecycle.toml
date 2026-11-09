@@ -1,0 +1,12 @@
+# Horizon v0.7.8 sandbox lifecycle smoke test. The official checker also
+# drives its own 40-tick, 120-frame trial run against every built package.
+[[step]]
+ticks = 40
+frames = 120
+
+[[step]]
+title-screen = true
+
+[[step]]
+title-screen = true
+frames = 2
